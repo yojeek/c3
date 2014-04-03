@@ -1367,7 +1367,18 @@
                         if (typeof d[id] === 'undefined') {
                             x = undefined;
                         }
-                        return {x: x, value: d[id] !== null && !isNaN(d[id]) ? +d[id] : null, id: convertedId};
+                        // set value and composite value
+                        var value, value_components;
+                        if (isArray(d[id])) {
+                            value_components = d[id];
+                            value = d[id].reduce(function (pv, cv) { return pv + cv; }, 0);
+                        } else if (!isNaN(d[id])) {
+                            value = d[id];
+                        } else {
+                            value = null
+                        }
+
+                        return { x: x, value: value, id: convertedId, value_components: value_components };
                     }).filter(function (v) { return typeof v.x !== 'undefined'; })
                 };
             });
@@ -2094,6 +2105,34 @@
                 return path;
             };
         }
+        function generateDrawBarSegments(barIndices, isSub) {
+            var getPoints = generateGetBarPoints(barIndices, isSub);
+            return function (d, i) {
+                // 4 points that make a bar
+                var points = getPoints(d, i),
+                    html = '';
+
+                // switch points if axis is rotated, not applicable for sub chart
+                var indexX = __axis_rotated ? 1 : 0;
+                var indexY = __axis_rotated ? 0 : 1;
+
+                if (d.value_components) {
+                    var barHeight = points[1][indexY] - points[0][indexY];
+
+                    for (var j = 0, J = d.value_components.length - 1; j < J; j++) {
+                        var comp = d.value_components[j],
+                            path = '<path d="';
+
+                        path += 'M' + points[0][indexX] + ',' + (points[0][indexY] + barHeight * (comp / d.value)) + ' ' +
+                            'L' + points[2][indexX] + ',' + (points[0][indexY] + barHeight * (comp / d.value)) + ' z';
+
+                        html += path + '"></path>';
+                    }
+                }
+
+                return html;
+            };
+        }
         function generateXYForText(barIndices, forX) {
             var getPoints = generateGetBarPoints(barIndices, false),
                 getter = forX ? getXForText : getYForText;
@@ -2731,8 +2770,8 @@
                 isWithin = isWithinCircle(target, __point_select_r * 1.5);
                 toggle = togglePoint;
             }
-            else if (target.nodeName === 'path') {
-                isWithin = isWithinBar(target);
+            else if (target.nodeName === 'g' && target.children[0] && target.children[0].nodeName === 'path') {
+                isWithin = isWithinBar(target.children[0]);
                 toggle = toggleBar;
             }
             if (__data_selection_grouped || isWithin) {
@@ -2835,7 +2874,7 @@
             var rectX, rectW;
             var withY, withSubchart, withTransition, withTransform, withUpdateXDomain, withUpdateOrgXDomain, withLegend;
             var hideAxis = hasArcType(c3.data.targets);
-            var drawBar, drawBarOnSub, xForText, yForText;
+            var drawBar, drawBarSegments, drawBarOnSub, xForText, yForText;
             var duration, durationForExit, durationForAxis;
             var targetsToShow = filterTargetsToShow(c3.data.targets), uniqueXs;
 
@@ -2892,6 +2931,7 @@
 
             // setup drawer - MEMO: these must be called after axis updated
             drawBar = generateDrawBar(barIndices);
+            drawBarSegments = generateDrawBarSegments(barIndices);
             xForText = generateXYForText(barIndices, true);
             yForText = generateXYForText(barIndices, false);
 
@@ -3012,17 +3052,30 @@
             // bars
             mainBar = main.selectAll('.' + CLASS.bars).selectAll('.' + CLASS.bar)
                 .data(barData);
-            mainBar.enter().append('path')
-                .attr('d', drawBar)
-                .style("stroke", 'none')
+
+            mainBar.enter()
+                .append('g')
                 .style("opacity", 0)
-                .style("fill", function (d) { return color(d.id); })
-                .attr("class", classBar);
+                .attr("class", classBar)
+                .append('path')
+                .attr('d', drawBar)
+                .style("fill", function (d) { return color(d.id); });
+
+            mainBar
+                .select('g')
+                .remove()
+
+            mainBar
+                .append('g')
+                .html(drawBarSegments)
+
             mainBar
                 .style("opacity", initialOpacity)
-              .transition().duration(duration)
-                .attr('d', drawBar)
-                .style("opacity", 1);
+                .transition().duration(duration)
+                .style("opacity", 1)
+                .select('path')
+                .attr('d', drawBar);
+
             mainBar.exit().transition().duration(durationForExit)
                 .style('opacity', 0)
                 .remove();
@@ -4026,6 +4079,9 @@
     }
     function isDefined(v) {
         return typeof v !== 'undefined';
+    }
+    function isArray(x) {
+        return Object.prototype.toString.call(x) === '[object Array]'
     }
 
     if (typeof window.define === "function" && window.define.amd) {
