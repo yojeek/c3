@@ -80,7 +80,7 @@
     stroke-width: 0;
 }
 
-path.c3-bar-separator {
+.c3-bar-separator path {
     stroke-width: 1;
     stroke: white;
     opacity: .75;

@@ -2140,7 +2140,7 @@
 
                     for (var j = 0, J = d.value_components.length - 1; j < J; j++) {
                         var comp = d.value_components[j],
-                            path = '<path class="' + CLASS.chartBarSeparator +'" d="';
+                            path = '<path d="';
 
                         path += 'M' + points[0][indexX] + ',' + (points[0][indexY] + barHeight * (comp / d.value)) + ' ' +
                             'L' + points[2][indexX] + ',' + (points[0][indexY] + barHeight * (comp / d.value)) + ' z';
@@ -3102,15 +3102,17 @@
                 .attr("class", classBar)
                 .append('path')
                 .attr('d', drawBar)
-                .style("fill", function (d) { return color(d.id); });
+                .style("fill", function (d) { return color(d.id); })
+                .style("stroke", function (d) { return color(d.id); });
 
             mainBar
                 .select('g')
                 .remove()
-
             mainBar
                 .append('g')
-                .html(drawBarSegments)
+                .attr("class", CLASS.chartBarSeparator)
+                .style("stroke", function (d) { return color(d.id); })
+                .html(drawBarSegments);
 
             mainBar
                 .style("opacity", initialOpacity)
