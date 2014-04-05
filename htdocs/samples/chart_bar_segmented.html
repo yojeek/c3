@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <link href="/css/c3.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <div id="chart"></div>
+
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="/js/c3.js"></script>
+    <script>
+      var chart = c3.generate({
+        data: {
+          columns: [
+            ['data1', [40, 100, 10], [40, 100, 100], [100, 300], [-100, -20], [-10, -100], 250],
+            ['data2', 130, 100, 140, -100, -50, 50]
+          ],
+          type: 'bar',
+/*          onclick: function (d, element) { console.log("onclick", d, element); },
+          onenter: function (d) { console.log("onenter", d); },
+          onleave: function (d) { console.log("onleave", d); }*/
+        },
+        axis: {
+          x: {
+            type: 'categorized'
+          }
+        },
+        bar: {
+          width: {
+            ratio: 0.3
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

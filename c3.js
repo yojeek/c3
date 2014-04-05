@@ -3055,6 +3055,30 @@
 
             mainBar.enter()
                 .append('g')
+                .on('mousemove', function (d, i) {
+                    var selectedData;
+
+                    if (d.value_components) {
+                        selectedData = [];
+                        for (var j = 0, J = d.value_components.length; j < J; j++) {
+                            selectedData.push({
+                                id: d.id,
+                                index: d.index,
+                                name: d.id + '.' + j,
+                                value: d.value_components[j],
+                                x: d.name
+                            })
+                        }
+                    } else {
+                        selectedData = filterTargetsToShow(c3.data.targets).map(function (d) {
+                            return addName(d.values[i]);
+                        });
+                    }
+
+                    showTooltip(selectedData, d3.mouse(this));
+                    showXGridFocus([d]);
+                })
+
                 .style("opacity", 0)
                 .attr("class", classBar)
                 .append('path')
@@ -3368,7 +3392,7 @@
                 .data(targets);
             mainBarEnter = mainBarUpdate.enter().append('g')
                 .attr('class', function (d) { return CLASS.chartBar + generateClass(CLASS.target, d.id); })
-                .style("pointer-events", "none");
+                //.style("pointer-events", "none"); // warning - breaks selection logic, todo fix
             // Bars for each data
             mainBarEnter.append('g')
                 .attr("class", classBars)
