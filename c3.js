@@ -1368,17 +1368,35 @@
                             x = undefined;
                         }
                         // set value and composite value
-                        var value, value_components;
+                        var value, vc, vc_names;
                         if (isArray(d[id])) {
-                            value_components = d[id];
-                            value = d[id].reduce(function (pv, cv) { return pv + cv; }, 0);
+                            vc = [], vc_names = [];
+
+                            for (var j = 0, J = d[id].length; j < J; j++) {
+                                var c = d[id][j];
+                                if (typeof c === 'object') {
+                                    vc_names.push(Object.keys(c)[0])
+                                    vc.push(c[vc_names[j]]);
+                                } else {
+                                    vc_names.push(null);
+                                    vc.push(c);
+                                }
+                            }
+
+                            value = vc.reduce(function (pv, cv) {return pv + cv}, 0);
                         } else if (!isNaN(d[id])) {
                             value = d[id];
                         } else {
                             value = null
                         }
 
-                        return { x: x, value: value, id: convertedId, value_components: value_components };
+                        return {
+                            x: x,
+                            value: value,
+                            id: convertedId,
+                            value_components: vc,
+                            value_component_names: vc_names
+                        };
                     }).filter(function (v) { return typeof v.x !== 'undefined'; })
                 };
             });
@@ -3064,7 +3082,7 @@
                             selectedData.push({
                                 id: d.id,
                                 index: d.index,
-                                name: d.id + '.' + j,
+                                name: d.value_component_names[j] || d.id + '.' + j,
                                 value: d.value_components[j],
                                 x: d.name
                             })
@@ -4106,6 +4124,55 @@
     }
     function isArray(x) {
         return Object.prototype.toString.call(x) === '[object Array]'
+    }
+
+    // ES5 15.2.3.14
+    // http://es5.github.com/#x15.2.3.14
+    if (!Object.keys) {
+        // http://whattheheadsaid.com/2010/10/a-safer-object-keys-compatibility-implementation
+        var hasDontEnumBug = true,
+            dontEnums = [
+                "toString",
+                "toLocaleString",
+                "valueOf",
+                "hasOwnProperty",
+                "isPrototypeOf",
+                "propertyIsEnumerable",
+                "constructor"
+            ],
+            dontEnumsLength = dontEnums.length;
+
+        for (var key in {"toString": null}) {
+            hasDontEnumBug = false;
+        }
+
+        Object.keys = function keys(object) {
+
+            if (
+                (typeof object != "object" && typeof object != "function") ||
+                    object === null
+                ) {
+                throw new TypeError("Object.keys called on a non-object");
+            }
+
+            var keys = [];
+            for (var name in object) {
+                if (owns(object, name)) {
+                    keys.push(name);
+                }
+            }
+
+            if (hasDontEnumBug) {
+                for (var i = 0, ii = dontEnumsLength; i < ii; i++) {
+                    var dontEnum = dontEnums[i];
+                    if (owns(object, dontEnum)) {
+                        keys.push(dontEnum);
+                    }
+                }
+            }
+            return keys;
+        };
+
     }
 
     if (typeof window.define === "function" && window.define.amd) {
