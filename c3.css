@@ -80,12 +80,11 @@
     stroke-width: 0;
 }
 
-.c3-bar g path {
+path.c3-bar-separator {
     stroke-width: 1;
     stroke: white;
     opacity: .75;
 }
-
 
 .c3-bar._expanded_ {
   fill-opacity: 0.75;

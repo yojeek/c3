@@ -11,6 +11,7 @@
         chartLine: 'c3-chart-line',
         chartLines: 'c3-chart-lines',
         chartBar: 'c3-chart-bar',
+        chartBarSeparator: 'c3-bar-separator',
         chartBars: 'c3-chart-bars',
         chartText: 'c3-chart-text',
         chartTexts: 'c3-chart-texts',
@@ -2139,7 +2140,7 @@
 
                     for (var j = 0, J = d.value_components.length - 1; j < J; j++) {
                         var comp = d.value_components[j],
-                            path = '<path d="';
+                            path = '<path class="' + CLASS.chartBarSeparator +'" d="';
 
                         path += 'M' + points[0][indexX] + ',' + (points[0][indexY] + barHeight * (comp / d.value)) + ' ' +
                             'L' + points[2][indexX] + ',' + (points[0][indexY] + barHeight * (comp / d.value)) + ' z';
