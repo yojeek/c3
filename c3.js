@@ -26,6 +26,7 @@
         focused: 'c3-focused',
         region: 'c3-region',
         regions: 'c3-regions',
+        customLayer: 'c3-custom-layer',
         tooltip: 'c3-tooltip',
         tooltipName: 'c3-tooltip-name',
         shape: 'c3-shape',
@@ -145,6 +146,9 @@
         // subchart
         var __subchart_show = getConfig(['subchart', 'show'], false),
             __subchart_size_height = __subchart_show ? getConfig(['subchart', 'size', 'height'], 60) : 0;
+
+        // custom layer
+        var __custom_layer_drawer = getConfig(['customLayer', 'drawer'], false);
 
         // color
         var __color_pattern = getConfig(['color', 'pattern'], []);
@@ -2435,6 +2439,13 @@
                 .style('fill-opacity', 0)
                 .style('cursor', __zoom_enabled ? __axis_rotated ? 'ns-resize' : 'ew-resize' : null);
 
+            // Custom layer
+            if (__custom_layer_drawer) {
+                main.append('g')
+                    .attr("clip-path", clipPath)
+                    .attr("class", CLASS.customLayer);
+            }
+
             // Define g for bar chart area
             main.select('.' + CLASS.chart).append("g")
                 .attr("class", CLASS.chartBars);
@@ -3020,7 +3031,7 @@
                 .attr("class", classBar);
             mainBar
                 .style("opacity", initialOpacity)
-              .transition().duration(duration)
+                .transition().duration(duration)
                 .attr('d', drawBar)
                 .style("opacity", 1);
             mainBar.exit().transition().duration(durationForExit)
@@ -3220,6 +3231,17 @@
             mainRegion.exit().transition().duration(duration)
                 .style("fill-opacity", 0)
                 .remove();
+
+            if (__custom_layer_drawer) {
+                __custom_layer_drawer(
+                    main.select('.' + CLASS.customLayer),
+                    filterTargetsToShow(c3.data.targets),
+                    {
+                        x: x,
+                        y: y
+                    }
+                );
+            }
 
             // update fadein condition
             getTargetIds().forEach(function (id) {
