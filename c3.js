@@ -3128,8 +3128,10 @@
             mainBar
                 .style("opacity", initialOpacity)
               .transition().duration(duration)
-                .attr('d', drawBar)
-                .style("opacity", 1);
+                .style("opacity", 1)
+                .select('path')
+                .attr('d', drawBar);
+
             mainBar.exit().transition().duration(durationForExit)
                 .style('opacity', 0)
                 .remove();
