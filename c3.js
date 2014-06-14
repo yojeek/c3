@@ -2303,6 +2303,7 @@
             zoom = d3.behavior.zoom()
                 .on("zoomstart", function () { zoom.altDomain = d3.event.sourceEvent.altKey ? x.orgDomain() : null; })
                 .on("zoom", __zoom_enabled ? redrawForZoom : null);
+            zoom._scale = zoom.scale;
             zoom.scale = function (scale) {
                 return __axis_rotated ? this.y(scale) : this.x(scale);
             };
@@ -2315,6 +2316,7 @@
                 this.scaleExtent([extent[0] * ratio, extent[1] * ratio]);
                 return this;
             };
+            zoom.redraw = redrawForZoom;
         }
 
         /*-- Draw Chart --*/
@@ -2717,7 +2719,12 @@
                         .on('dragstart', function () { dragstart(d3.mouse(this)); })
                         .on('dragend', function () { dragend(); })
                 )
-                .call(zoom).on("dblclick.zoom", null);
+                .call(zoom)
+                    .on("dblclick.zoom", null)
+                    .on("mousedown.zoom", null)     // hack to prevent pan when zooming
+                    .on("touchstart.zoom", null)    // ...
+                    .on("touchmove.zoom", null)     // ...
+                    .on("touchend.zoom", null);     // end of hack
         }
 
         function generateEventRectsForMultipleXs(eventRectEnter) {
@@ -3355,7 +3362,7 @@
             });
         }
         function redrawForZoom() {
-            if (d3.event.sourceEvent.type === 'mousemove' && zoom.altDomain) {
+            if (d3.event && d3.event.sourceEvent.type === 'mousemove' && zoom.altDomain) {
                 x.domain(zoom.altDomain);
                 zoom.scale(x).updateScaleExtent();
                 return;
@@ -3368,7 +3375,7 @@
                 withY: false,
                 withSubchart: false
             });
-            if (d3.event.sourceEvent.type === 'mousemove') {
+            if (d3.event && d3.event.sourceEvent.type === 'mousemove') {
                 cancelClick = true;
             }
         }
@@ -4119,6 +4126,8 @@
             selectChart.html("");
             window.onresize = null;
         };
+
+        c3.getZoom = function() { return zoom; }
 
         /*-- Load data and init chart with defined functions --*/
 
