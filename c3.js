@@ -3402,23 +3402,26 @@
         }
 
         function updateAndRedraw(options) {
-            options = isDefined(options) ? options : {};
-            options.withTransition = isDefined(options.withTransition) ? options.withTransition : true;
-            options.withTransform = isDefined(options.withTransform) ? options.withTransform : false;
-            options.withLegend = isDefined(options.withLegend) ? options.withLegend : false;
-            options.withUpdateXDomain = true;
-            options.withUpdateOrgXDomain = true;
-            options.durationForExit = 0;
-            // Update sizes and scales
-            updateSizes();
-            updateScales();
-            updateSvgSize();
-            // Update g positions
-            transformAll(options.withTransition);
-            // Draw with new sizes & scales
-            redraw(options);
+            var container = d3.select(__bindto)[0][0].parentNode;
+            // hack : attempt to redraw if chart DOM is hidden will generate an error
+            if (container.getBoundingClientRect().width && container.getBoundingClientRect().height) {
+                options = isDefined(options) ? options : {};
+                options.withTransition = isDefined(options.withTransition) ? options.withTransition : true;
+                options.withTransform = isDefined(options.withTransform) ? options.withTransform : false;
+                options.withLegend = isDefined(options.withLegend) ? options.withLegend : false;
+                options.withUpdateXDomain = true;
+                options.withUpdateOrgXDomain = true;
+                options.durationForExit = 0;
+                // Update sizes and scales
+                updateSizes();
+                updateScales();
+                updateSvgSize();
+                // Update g positions
+                transformAll(options.withTransition);
+                // Draw with new sizes & scales
+                redraw(options);
+            }
         }
-
         function updateTargets(targets) {
             var mainLineEnter, mainLineUpdate, mainBarEnter, mainBarUpdate, mainPieEnter, mainPieUpdate, mainTextUpdate, mainTextEnter;
             var contextLineEnter, contextLineUpdate, contextBarEnter, contextBarUpdate;
